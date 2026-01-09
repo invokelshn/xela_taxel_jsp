@@ -1,0 +1,12 @@
+output_topic: /joint_states
+publish_rate: 30.0
+preserve_input_order: true
+source_list: []
+
+device_profiles:
+  allegrohand:
+    keep_joints_files:
+      - list_allegrohand_joint.yaml
+  2f_gripper:
+    keep_joints_files:
+      - list_2f_gripper_joint.yaml

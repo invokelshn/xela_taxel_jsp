@@ -1,0 +1,10 @@
+<library path="xela_taxel_joint_state_publisher">
+  <class
+    name="xela_taxel_joint_state_publisher/XelaTaxelJointStatePublisher"
+    type="xela_taxel_joint_state_publisher::XelaTaxelJointStatePublisher"
+    base_class_type="controller_interface::ControllerInterface">
+    <description>
+      Publish taxel joint states using device profiles and config-defined joint lists.
+    </description>
+  </class>
+</library>

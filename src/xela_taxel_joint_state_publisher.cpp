@@ -153,6 +153,8 @@ controller_interface::CallbackReturn XelaTaxelJointStatePublisher::on_init()
   {
     auto_declare<std::string>("config_yaml", "");
     auto_declare<std::vector<std::string>>("device_profiles", {});
+    auto_declare<std::string>("device_profile", "");
+    auto_declare<std::string>("hand_side", "left");
     auto_declare<std::string>("output_topic", kDefaultOutputTopic);
     auto_declare<std::vector<std::string>>("source_list", {});
     auto_declare<double>("publish_rate", kDefaultPublishRate);
@@ -172,6 +174,14 @@ controller_interface::CallbackReturn XelaTaxelJointStatePublisher::on_configure(
 {
   config_yaml_ = get_node()->get_parameter("config_yaml").as_string();
   device_profiles_ = get_node()->get_parameter("device_profiles").as_string_array();
+  const std::string device_profile = get_node()->get_parameter("device_profile").as_string();
+  hand_side_ = get_node()->get_parameter("hand_side").as_string();
+  if (!device_profile.empty())
+  {
+    device_profiles_.clear();
+    device_profiles_.push_back(device_profile);
+    RCLCPP_INFO(get_node()->get_logger(), "device_profile override: %s", device_profile.c_str());
+  }
   output_topic_ = get_node()->get_parameter("output_topic").as_string();
   source_list_ = get_node()->get_parameter("source_list").as_string_array();
   publish_rate_ = get_node()->get_parameter("publish_rate").as_double();
@@ -501,6 +511,13 @@ bool XelaTaxelJointStatePublisher::load_config()
         try
         {
           auto joints = load_keep_joints_file(file_path);
+          if (!joints.empty())
+          {
+            RCLCPP_INFO(get_node()->get_logger(),
+              "Profile '%s' loaded keep_joints file '%s' (count=%zu, first=%s)",
+              profile_name.c_str(), file_path.string().c_str(), joints.size(),
+              joints.front().c_str());
+          }
           append_unique(keep_joints_, joints);
         }
         catch (const std::exception & e)
@@ -547,6 +564,11 @@ bool XelaTaxelJointStatePublisher::load_config()
     RCLCPP_ERROR(get_node()->get_logger(), "keep_joints resolved to empty list.");
     return false;
   }
+  else
+  {
+    RCLCPP_INFO(get_node()->get_logger(), "Resolved keep_joints total: %zu (first=%s)",
+      keep_joints_.size(), keep_joints_.front().c_str());
+  }
 
   if (!ordered_keep_joints_.empty())
   {
@@ -561,6 +583,33 @@ bool XelaTaxelJointStatePublisher::load_config()
       }
     }
     ordered_keep_joints_.swap(filtered);
+  }
+
+  const std::string side = trim(hand_side_);
+  if (side == "right" || side == "r") {
+    for (auto & name : keep_joints_) {
+      if (name.rfind("x_taxel_0_", 0) == 0) {
+        name.replace(0, 9, "x_taxel_1_");
+      }
+    }
+    for (auto & name : ordered_keep_joints_) {
+      if (name.rfind("x_taxel_0_", 0) == 0) {
+        name.replace(0, 9, "x_taxel_1_");
+      }
+    }
+    RCLCPP_INFO(get_node()->get_logger(), "Applied hand_side=right mapping prefix x_taxel_1_.");
+  } else if (side == "left" || side == "l") {
+    for (auto & name : keep_joints_) {
+      if (name.rfind("x_taxel_1_", 0) == 0) {
+        name.replace(0, 9, "x_taxel_0_");
+      }
+    }
+    for (auto & name : ordered_keep_joints_) {
+      if (name.rfind("x_taxel_1_", 0) == 0) {
+        name.replace(0, 9, "x_taxel_0_");
+      }
+    }
+    RCLCPP_INFO(get_node()->get_logger(), "Applied hand_side=left mapping prefix x_taxel_0_.");
   }
 
   return true;

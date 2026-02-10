@@ -61,6 +61,7 @@ private:
 
   std::string config_yaml_;
   std::vector<std::string> device_profiles_;
+  std::string hand_side_;
   std::string output_topic_;
   std::vector<std::string> source_list_;
   double publish_rate_ = 30.0;

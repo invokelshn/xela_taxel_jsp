@@ -4,9 +4,21 @@ preserve_input_order: true
 source_list: []
 
 device_profiles:
-  allegrohand:
+  uSCuAH_left:
     keep_joints_files:
-      - list_allegrohand_joint.yaml
-  2f_gripper:
+      - uscuahl_joint.yaml
+  uSCuAH_right:
     keep_joints_files:
-      - list_2f_gripper_joint.yaml
+      - uscuahr_joint.yaml
+  uSCuAH:
+    keep_joints_files:
+      - uscuahl_joint.yaml
+  uSPr2F:
+    keep_joints_files:
+      - uspr2f_joint.yaml
+  uSPrHE35:
+    keep_joints_files:
+      - usprhe35_joint.yaml
+  uSPrDS:
+    keep_joints_files:
+      - usprds_joint.yaml
